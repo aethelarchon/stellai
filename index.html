@@ -33,7 +33,7 @@ pre{background:#000;padding:8px;border-radius:6px;overflow-x:auto;font-size:11px
 <button id="settingsBtn">⚙️</button>
 </header>
 <div id="chat">
-<div class="msg ai">স্বাগতম! ⚙️ থেকে Settings খুলে Gemini API Key, GitHub Token আর Repo সেভ করুন। তারপর আমাকে বলুন কী ঠিক করতে হবে।</div>
+<div class="msg ai">স্বাগতম! ⚙️ থেকে Settings খুলে Groq API Key, GitHub Token আর Repo সেভ করুন। তারপর আমাকে বলুন কী ঠিক করতে হবে।</div>
 </div>
 <div id="bar">
 <textarea id="inp" rows="1" placeholder="যেমন: লগইন পেজের বাগ ঠিক করো"></textarea>
@@ -42,8 +42,9 @@ pre{background:#000;padding:8px;border-radius:6px;overflow-x:auto;font-size:11px
 
 <div id="cfg">
 <h2 style="color:#00e5ff;font-size:16px">⚙️ Settings</h2>
-<label>Gemini API Key</label>
-<input id="gKey" type="password" placeholder="AIza...">
+<!-- API Key লেবেল পরিবর্তন করা হয়েছে -->
+<label>Groq API Key (gsk_...)</label>
+<input id="gKey" type="password" placeholder="gsk_...">
 <label>GitHub Token</label>
 <input id="ghToken" type="password" placeholder="ghp_...">
 <label>GitHub Repo (username/repo)</label>
@@ -101,7 +102,6 @@ const d=await gh(`/repos/${C.ghRepo}/contents/${p}?ref=${C.ghBranch}`);
 return atob(d.content.replace(/\n/g,''));
 }
 async function putFile(path,content){
-// Get current SHA if exists
 let sha;
 try{const d=await gh(`/repos/${C.ghRepo}/contents/${path}?ref=${C.ghBranch}`);sha=d.sha;}catch(e){}
 const body={
@@ -118,18 +118,26 @@ body:JSON.stringify(body)
 if(!r.ok)throw new Error('Commit failed');
 return r.json();
 }
-async function askGemini(prompt){
-// 👇 এখানে গুগলের লেটেস্ট মডেল gemini-3.8-flash বসানো হয়েছে
-const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${C.gKey}`;
-const r=await fetch(url,{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+
+// 👇 এখানে Groq API-এর কোড বসানো হয়েছে
+async function askGroq(prompt){
+const url = "https://api.groq.com/openai/v1/chat/completions";
+const r = await fetch(url, {
+    method: 'POST',
+    headers: {
+        'Authorization': 'Bearer ' + C.gKey, // আপনার Groq API Key এখানে বসবে
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        model: "llama-3.3-70b-versatile", // Groq এর ফ্রি ও অত্যন্ত ফাস্ট মডেল
+        messages: [{ role: "user", content: prompt }]
+    })
 });
-const d=await r.json();
-if(d.error)throw new Error(d.error.message);
-return d.candidates[0].content.parts[0].text;
+const d = await r.json();
+if (d.error) throw new Error(d.error.message);
+return d.choices[0].message.content;
 }
+
 function parseFiles(text){
 const out=[];
 const re=/```FILE:\s*([^\n]+)\n([\s\S]*?)```/g;
@@ -163,7 +171,8 @@ ctx+=`\n\nINSTRUCTIONS:
 - Only include files that need changes. Keep the fix minimal and safe.
 - Do not remove unrelated code.`;
 loading.textContent='🧠 AI ভাবছে...';
-const reply=await askGemini(ctx);
+// 👇 এখানে askGroq কল করা হয়েছে
+const reply = await askGroq(ctx);
 loading.remove();
 addCode(reply);
 const fixes=parseFiles(reply);
@@ -190,4 +199,4 @@ snd.onclick=send;
 inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 </script>
 </body>
-</html>
+  </html>
