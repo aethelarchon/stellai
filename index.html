@@ -42,7 +42,6 @@ pre{background:#000;padding:8px;border-radius:6px;overflow-x:auto;font-size:11px
 
 <div id="cfg">
 <h2 style="color:#00e5ff;font-size:16px">⚙️ Settings</h2>
-<!-- API Key লেবেল পরিবর্তন করা হয়েছে -->
 <label>Groq API Key (gsk_...)</label>
 <input id="gKey" type="password" placeholder="gsk_...">
 <label>GitHub Token</label>
@@ -119,17 +118,17 @@ if(!r.ok)throw new Error('Commit failed');
 return r.json();
 }
 
-// 👇 এখানে Groq API-এর কোড বসানো হয়েছে
+// 👇 এখানে Groq API-এর লেটেস্ট মডেল বসানো হয়েছে
 async function askGroq(prompt){
 const url = "https://api.groq.com/openai/v1/chat/completions";
 const r = await fetch(url, {
     method: 'POST',
     headers: {
-        'Authorization': 'Bearer ' + C.gKey, // আপনার Groq API Key এখানে বসবে
+        'Authorization': 'Bearer ' + C.gKey,
         'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-        model: "llama-3.3-70b-versatile", // Groq এর ফ্রি ও অত্যন্ত ফাস্ট মডেল
+        model: "openai/gpt-oss-120b", // 👈 Groq-এর লেটেস্ট ফ্রি মডেল
         messages: [{ role: "user", content: prompt }]
     })
 });
@@ -171,7 +170,6 @@ ctx+=`\n\nINSTRUCTIONS:
 - Only include files that need changes. Keep the fix minimal and safe.
 - Do not remove unrelated code.`;
 loading.textContent='🧠 AI ভাবছে...';
-// 👇 এখানে askGroq কল করা হয়েছে
 const reply = await askGroq(ctx);
 loading.remove();
 addCode(reply);
@@ -199,4 +197,4 @@ snd.onclick=send;
 inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 </script>
 </body>
-  </html>
+</html>
