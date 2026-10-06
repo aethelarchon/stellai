@@ -129,9 +129,9 @@ if(!r.ok)throw new Error('Commit failed');
 return r.json();
 }
 
-// ============ 3টি AI প্রোভাইডার (আপডেটেড মডেল) ============
+// ============ 3টি AI প্রোভাইডার (লেটেস্ট মডেল) ============
 
-// 1️⃣ Gemini - gemini-3.8-flash (গুগলের এরর মেসেজ অনুযায়ী)
+// 1️⃣ Gemini - gemini-3.8-flash (লেটেস্ট)
 async function askGemini(prompt){
 const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${C.gKey}`;
 const r=await fetch(url,{
@@ -144,13 +144,13 @@ if(d.error)throw new Error('Gemini: '+d.error.message);
 return d.candidates[0].content.parts[0].text;
 }
 
-// 2️⃣ OpenRouter - Auto Router (নিজে থেকেই ফ্রি মডেল বেছে নেবে)
+// 2️⃣ OpenRouter - openrouter/free (অটো-রাউটার, নিজে ফ্রি মডেল বেছে নেবে)
 async function askOpenRouter(prompt){
 const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
 method:'POST',
 headers:{'Authorization':'Bearer '+C.oKey,'Content-Type':'application/json'},
 body:JSON.stringify({
-model:'openrouter/auto',
+model:'openrouter/free',
 messages:[{role:'user',content:prompt}]
 })
 });
@@ -159,13 +159,13 @@ if(d.error)throw new Error('OpenRouter: '+(d.error.message||JSON.stringify(d.err
 return d.choices[0].message.content;
 }
 
-// 3️⃣ Groq - llama-3.4-70b-versatile (নতুন মডেল)
+// 3️⃣ Groq - meta-llama/llama-4-maverick-17b-128e-instruct (লেটেস্ট)
 async function askGroq(prompt){
 const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
 method:'POST',
 headers:{'Authorization':'Bearer '+C.grKey,'Content-Type':'application/json'},
 body:JSON.stringify({
-model:'llama-3.4-70b-versatile',
+model:'meta-llama/llama-4-maverick-17b-128e-instruct',
 messages:[{role:'user',content:prompt}]
 })
 });
@@ -285,4 +285,4 @@ add('sys','✅ '+file+' রিস্টোর হয়েছে!');
 };
 </script>
 </body>
-    </html>
+</html>
