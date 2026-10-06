@@ -129,11 +129,11 @@ if(!r.ok)throw new Error('Commit failed');
 return r.json();
 }
 
-// ============ 3টি AI প্রোভাইডার ============
+// ============ 3টি AI প্রোভাইডার (আপডেটেড মডেল) ============
 
-// 1️⃣ Gemini
+// 1️⃣ Gemini - gemini-3.8-flash (গুগলের এরর মেসেজ অনুযায়ী)
 async function askGemini(prompt){
-const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${C.gKey}`;
+const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${C.gKey}`;
 const r=await fetch(url,{
 method:'POST',
 headers:{'Content-Type':'application/json'},
@@ -144,13 +144,13 @@ if(d.error)throw new Error('Gemini: '+d.error.message);
 return d.candidates[0].content.parts[0].text;
 }
 
-// 2️⃣ OpenRouter
+// 2️⃣ OpenRouter - Auto Router (নিজে থেকেই ফ্রি মডেল বেছে নেবে)
 async function askOpenRouter(prompt){
 const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
 method:'POST',
 headers:{'Authorization':'Bearer '+C.oKey,'Content-Type':'application/json'},
 body:JSON.stringify({
-model:'google/gemini-2.0-flash-exp:free',
+model:'openrouter/auto',
 messages:[{role:'user',content:prompt}]
 })
 });
@@ -159,13 +159,13 @@ if(d.error)throw new Error('OpenRouter: '+(d.error.message||JSON.stringify(d.err
 return d.choices[0].message.content;
 }
 
-// 3️⃣ Groq
+// 3️⃣ Groq - llama-3.4-70b-versatile (নতুন মডেল)
 async function askGroq(prompt){
 const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
 method:'POST',
 headers:{'Authorization':'Bearer '+C.grKey,'Content-Type':'application/json'},
 body:JSON.stringify({
-model:'llama-3.3-70b-versatile',
+model:'llama-3.4-70b-versatile',
 messages:[{role:'user',content:prompt}]
 })
 });
@@ -194,7 +194,7 @@ add('sys','❌ '+p.n+' ব্যর্থ: '+e.message);
 lastErr=e;
 }
 }
-throw new Error('সব এআই ব্যর্থ হয়েছে: '+(lastErr?lastErr.message:'কোনো API Key নেই'));
+throw new Error('সব এআই ব্যর্থ: '+(lastErr?lastErr.message:'কোনো API Key নেই'));
 }
 
 // ============ Send Handler ============
@@ -207,7 +207,6 @@ inp.value='';add('user',text);snd.disabled=true;
 
 const loading=add('ai','🔍 রিপো স্ক্যান করছি...');
 try{
-// ফাইল লিস্ট আনো
 const tree=await gh(`/repos/${C.ghRepo}/git/trees/${C.ghBranch}?recursive=1`);
 const files=tree.tree.filter(f=>f.type==='blob'&&/\.(html|css|js|jsx|ts|tsx|json|md)$/.test(f.path)).slice(0,10);
 
@@ -233,12 +232,11 @@ ctx+=`\n\nINSTRUCTIONS:
 - Only include files that need changes. Keep the fix minimal and safe.
 - Do not remove unrelated code.`;
 
-loading.textContent='🧠 AI ভাবছে... (একাধিক মডেল চেষ্টা করছে)';
+loading.textContent='🧠 AI ভাবছে...';
 const reply=await askAI(ctx);
 loading.remove();
 addCode(reply);
 
-// ফাইল পার্স
 const fixes=[];
 const re=/```FILE:\s*([^\n]+)\n([\s\S]*?)```/g;
 let m;
@@ -253,7 +251,7 @@ btn.disabled=true;btn.textContent='⏳ কমিট হচ্ছে...';
 try{
 for(const f of fixes)await putFile(f.path,f.content);
 btn.textContent='✅ GitHub-এ কমিট হয়েছে!';
-add('sys','🚀 ফিক্স কমিট হয়েছে। ১-২ মিনিটে লাইভ হবে।');
+add('sys','🚀 ফিক্স কমিট হয়েছে।');
 }catch(e){btn.textContent='❌ '+e.message;}
 };
 chat.appendChild(btn);chat.scrollTop=chat.scrollHeight;
@@ -282,7 +280,7 @@ const d=await r.json();
 if(d.message)throw new Error(d.message);
 const content=decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
 await putFile(file,content);
-add('sys','✅ '+file+' সফলভাবে রিস্টোর হয়েছে!');
+add('sys','✅ '+file+' রিস্টোর হয়েছে!');
 }catch(e){add('sys','❌ '+e.message);}
 };
 </script>
